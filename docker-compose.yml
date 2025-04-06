@@ -1,0 +1,50 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: "weathertask-webapi"
+    depends_on:
+      - mssql_server
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      WeatherApi__ApiKey: "{apiKey}"
+      ConnectionStrings__DefaultConnection: "Server=mssql_server,1433;Database=WeatherTestTaskDb;User Id=sa;Password=YourPassword123_;TrustServerCertificate=True;"
+    ports:
+      - "8080:8080"
+    networks:
+      - back
+
+  client:
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+         API_URL: "http://localhost:8080"
+    container_name: "weathertask-client"
+    ports:
+      - "80:80"
+
+  mssql_server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql_server
+    ports:
+        - "1433:1433"
+    environment:
+        SA_PASSWORD: "YourPassword123_"
+        ACCEPT_EULA: "Y"
+    volumes:
+        - mssql_data:/var/opt/mssql
+    networks:
+        - back
+
+networks:
+  back:
+    driver: bridge
+
+volumes:
+    mssql_data:
+
+    
